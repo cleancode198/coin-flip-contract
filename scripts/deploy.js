@@ -3,7 +3,7 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+//const hre = require("hardhat");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -14,12 +14,17 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
 
-  await greeter.deployed();
+  const KOVAN_KEYHASH = "0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4";
+  const KOVAN_VRF_COORDINATOR = "0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9";
+  const ETH_USD_PRICE_FEED = "0x9326BFA02ADD2366b30bacB125260Af641031331";
+  const KOVAN_LINK_TOKEN = "0xa36085F69e2889c224210F603D836748e7dC0088";
 
-  console.log("Greeter deployed to:", greeter.address);
+
+  const GameContract = artifacts.require('GameContract');
+  const game = await GameContract.new(ETH_USD_PRICE_FEED, KOVAN_VRF_COORDINATOR, KOVAN_LINK_TOKEN, KOVAN_KEYHASH);
+
+  console.log("Game deployed to:", game.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
