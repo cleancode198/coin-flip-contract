@@ -1,26 +1,43 @@
 const { assert } = require("chai");
 const truffleAssert = require("truffle-assertions");
 
+/**
+ * GAME_STATE:
+ *  OPEN - 0
+ *  CLOSED - 1
+ *  GETTING_WINNER - 2
+ */
+
+/**
+ * GAME_OPTIONS:
+ *  ROCK - 0
+ *  PAPER - 1
+ *  SCRISSORS - 2
+ *  NOT_SET - 3
+ */
 
 contract("Game", accounts => {
   const Game = artifacts.require('GameContract');
-  //const VRFCoordinatoMock = artifacts.require('@chainlink/contracts/src/v0.6/tests/VRFCoordinatorMock');  // could use contracts in test folder, but guves artifacts error
+  const VRFCoordinatoMock = artifacts.require('VRFCoordinatorMock');
   const MockPriceFeed = artifacts.require("@chainlink/contracts/src/v0.6/tests/MockV3Aggregator");
-  //const { LinkToken } = require("../../basics/truffle/truffle/v0.4/LinkToken");
+  const LinkToken = artifacts.require("LinkToken");
 
   const defaultAccount = accounts[0];
   const player1 = accounts[1];
   const player2 = accounts[2];
   const player3 = accounts[3];
 
-  let game, mockPriceFeed;
+  let game, mockPriceFeed, vrfCoordinatoMock, link, keyHash;
 
-  describe("#plays correctly", () => {
+  describe("#plays game correctly", () => {
     let price = "200000000000";
 
     beforeEach(async () => {
+      keyhash = "0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4";
+      link = await LinkToken.new({from: defaultAccount});
+      vrfCoordinatoMock = await VRFCoordinatoMock.new(link.address, {from: defaultAccount});
       mockPriceFeed = await MockPriceFeed.new(8, price, {from: defaultAccount}); // 8 - decimals
-      game = await Game.new(mockPriceFeed.address, {from: defaultAccount})
+      game = await Game.new(mockPriceFeed.address, vrfCoordinatoMock.address, link.address, keyhash, {from: defaultAccount})
     });
 
     it("correctly gets the minimum bet", async () => {
@@ -30,13 +47,13 @@ contract("Game", accounts => {
 
     it("should revert if bet value is not correct", async () => {
       await truffleAssert.reverts(
-        game.createGame({ from: player1, value: 0 })
+        game.createGame(1, { from: player1, value: 0 })
       )
     });
 
     it("should create new game correctly", async () => {
       await truffleAssert.passes(
-        game.createGame({ from: player1, value: web3.utils.toWei("0.025", "ether") })
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
       );
 
       let lastGameId = await game.gameId() - 1;
@@ -46,14 +63,77 @@ contract("Game", accounts => {
       assert.equal(web3.utils.fromWei(createdGame.prize), 0.025, "Prize was set incorrectly!");
       assert.equal(createdGame.player1.toLowerCase(), player1.toLowerCase(), "Player 1 was set incorrectly!");
       assert.equal(createdGame.player2.toLowerCase(), "0x0000000000000000000000000000000000000000", "Player2 was set incorrectly!");
-      assert.equal(createdGame.finished, false, "Finished was set incorrectly!");
+      assert.equal(createdGame.state, 0, "Game state was set incorrectly!");
       assert.equal(createdGame.id, 0, "Game id was set incorrectly!");
+    });
+
+    it("should revert if trying to join game created by the same address", async () => {
+      await truffleAssert.passes(
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
+      );
+      await truffleAssert.reverts(
+        game.joinGame(0, 0, { from: player1, value: 0 })
+      );
+    });
+
+    it("should revert if trying to join game without needed value", async () => {
+      await truffleAssert.passes(
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
+      );
+      await truffleAssert.reverts(
+        game.joinGame(0, 0, { from: player2, value: 0 })
+      );
+    });
+
+    it("should join and play game correctyl", async () => {
+      // transfer LINK to game contract for VRF fee
+      await link.transfer(game.address, web3.utils.toWei("0.5", "ether"), {from:defaultAccount});
+
+      game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") })
+
+      let tx = await game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      let requestId = tx.receipt.rawLogs[3].topics[0];  // get reauestId emitted in the event
+
+      // winner should be player2 3%2=1
+      await vrfCoordinatoMock.callBackWithRandomness(requestId, "3", game.address, {from: defaultAccount});  // calls fulfillRandomness
+
+      let playedGame = await game.gameMapping(0);
+
+      assert.equal(playedGame.winner, player2, "Incorrect winner!");
+      assert.equal(playedGame.prize.toNumber(), 0, "Prize wasn't set to 0 after game was played!");
+      assert.equal(playedGame.state.toNumber(), 1, "Game state wasn't set to CLOSED!");
+    });
+
+    it("should revert if trying to join game that has already finished", async () => {
+      // transfer LINK to game contract for VRF fee
+      await link.transfer(game.address, web3.utils.toWei("0.5", "ether"), {from:defaultAccount});
+
+      game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") })
+
+      let tx = await game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      let requestId = tx.receipt.rawLogs[3].topics[0];  // get reauestId emitted in the event
+
+      await vrfCoordinatoMock.callBackWithRandomness(requestId, "2", game.address, {from: defaultAccount});  // calls fulfillRandomness
+
+      await truffleAssert.reverts(
+        game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      );
+    });
+
+    it("should revert if trying to create or join the game eith NOT_SET option", async () => {
+      await game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") });
+      await truffleAssert.reverts(
+        game.createGame(3, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      );
+      await truffleAssert.reverts(
+        game.joinGame(0, 3, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      );
     });
   });
 
   describe("#handle change min bet correctly", async () => {
     beforeEach(async () => {
-      game = await Game.new(mockPriceFeed.address, {from: defaultAccount})
+      game = await Game.new(mockPriceFeed.address, vrfCoordinatoMock.address, link.address, keyhash, {from: defaultAccount})
     });
 
     it("should revert if not owner tries to change min bet", async () => {
