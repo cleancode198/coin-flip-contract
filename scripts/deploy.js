@@ -23,7 +23,7 @@ async function main() {
 
   const GameContract = artifacts.require('GameContract');
   const game = await GameContract.new(ETH_USD_PRICE_FEED, KOVAN_VRF_COORDINATOR, KOVAN_LINK_TOKEN, KOVAN_KEYHASH);
-
+  await game.createGame(1, {value: web3.utils.toWei("0.05", "ether")})
   console.log("Game deployed to:", game.address);
 }
 

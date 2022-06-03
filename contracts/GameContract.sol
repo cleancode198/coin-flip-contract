@@ -38,9 +38,9 @@ contract GameContract is Ownable, VRFConsumerBase {
   mapping(uint256 => Game) public gameMapping;
   mapping(bytes32 => uint256) public requestIdToGameId; // to be able to edit winner after the results are back
 
-  event GameCreated(address creator, uint256 betValue);
+  event GameCreated(address creator, uint256 betValue, uint256 gameId);
   event GameJoined(address joiner);
-  event GameFinished(address winner, uint256 prize);
+  event GameFinished(address winner, uint256 prize, uint256 gameId);
   event MinBetChanged(uint256 newBet, address changedBy);
   event RequestedRandomness(bytes32 requestId);
 
@@ -51,7 +51,7 @@ contract GameContract is Ownable, VRFConsumerBase {
     )
   {
     priceFeed = AggregatorV3Interface(_priceFeed);
-    minBet = 50;
+    minBet = 10;  // change to 50 when doing tests
     keyHash = _keyHash;
     fee = 100000000000000000; // 0.1 LINK
   }
@@ -79,7 +79,7 @@ contract GameContract is Ownable, VRFConsumerBase {
     });
     gameMapping[_id] = _game;
 
-    emit GameCreated(msg.sender, msg.value);
+    emit GameCreated(msg.sender, msg.value, _id);
   }
 
   function joinGame(uint256 _gameId, GAME_OPTIONS option) public payable validOptionInput(option) {
@@ -151,7 +151,15 @@ contract GameContract is Ownable, VRFConsumerBase {
     gameMapping[_gameId].state = GAME_STATE.CLOSED;
     winner.transfer(gameMapping[_gameId].prize); // send winner the game prize
 
-    emit GameFinished(winner, gameMapping[_gameId].prize);
+    emit GameFinished(winner, gameMapping[_gameId].prize, _gameId);
+  }
+
+  function getLastId() view public returns(uint256) {
+    return gameId.current();
+  }
+
+  function getGameForId(uint256 id) view public returns(Game memory) {
+    return gameMapping[id];
   }
 
 }
