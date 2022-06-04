@@ -21,7 +21,7 @@ contract GameContract is Ownable, VRFConsumerBase {
   enum GAME_OPTIONS { ROCK, PAPER, SCRISSORS, NOT_SET }
   GAME_OPTIONS public gameOptions;
 
-  enum GAME_STATE { OPEN, CLOSED, GETTING_WINNER }
+  enum GAME_STATE { OPEN, CLOSED, GETTING_WINNER, DELETED }
   GAME_STATE public gameState;
 
   struct Game {
@@ -51,7 +51,7 @@ contract GameContract is Ownable, VRFConsumerBase {
     )
   {
     priceFeed = AggregatorV3Interface(_priceFeed);
-    minBet = 10;  // change to 50 when doing tests
+    minBet = 5;  // change to 50 when doing tests
     keyHash = _keyHash;
     fee = 100000000000000000; // 0.1 LINK
   }
@@ -97,6 +97,12 @@ contract GameContract is Ownable, VRFConsumerBase {
     getWinner(_gameId);
 
     emit GameJoined(msg.sender);
+  }
+
+  function deleteGame(uint256 _gameId) public {
+    require(msg.sender == gameMapping[_gameId].player1, "Not your game!");
+    gameMapping[_gameId].state = GAME_STATE.DELETED;
+    payable(msg.sender).transfer(gameMapping[_gameId].prize);
   }
 
   function changeMinBet(uint256 _new) public onlyOwner {
@@ -146,11 +152,11 @@ contract GameContract is Ownable, VRFConsumerBase {
       winner = gameMapping[_gameId].player2;
     }
 
-    gameMapping[_gameId].winner = winner;
-    gameMapping[_gameId].prize = 0;
-    gameMapping[_gameId].state = GAME_STATE.CLOSED;
-    winner.transfer(gameMapping[_gameId].prize); // send winner the game prize
 
+    gameMapping[_gameId].winner = winner;
+    gameMapping[_gameId].state = GAME_STATE.CLOSED;
+
+    winner.transfer(gameMapping[_gameId].prize); // send winner the game prize
     emit GameFinished(winner, gameMapping[_gameId].prize, _gameId);
   }
 

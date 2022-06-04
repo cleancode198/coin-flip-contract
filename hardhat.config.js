@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-truffle5");
-
+require("@nomiclabs/hardhat-waffle");
+//const hre = require("hardhat");
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -21,7 +22,7 @@ module.exports = {
   // CLEAR YOUR PRIVATE KEY AND INFURA KEY BEFORE COMMITING!!!!!
   // !!!!!!
   // uncoment for deployment and fill in needed info, nut SEE ABOVE!!!!!
-  /*networks: {
+  networks: {
     /*mainnet: {
       url: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       chainId: 1,
@@ -32,7 +33,12 @@ module.exports = {
       chainId: 42,
       accounts: [`{DEPLOYER_PRIVATE_KEY}`],
     },
-  },*/
+    fuji: {
+      url: ``,
+      chainId: 97,
+      accounts: [``],
+    },*/
+  },
   solidity: {
     compilers: [
       {

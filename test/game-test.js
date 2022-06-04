@@ -42,7 +42,7 @@ contract("Game", accounts => {
 
     it("correctly gets the minimum bet", async () => {
       let entranceFee = await game.getMinimalBet();
-      assert.equal(entranceFee.toString(), "25000000000000000"); // price: 2000$ (hardcoded above), 50$ = 0.025 ETH
+      assert.equal(entranceFee.toString(), "2500000000000000"); // price: 2000$ (hardcoded above), 5$ = 0.0025 ETH
     });
 
     it("should revert if bet value is not correct", async () => {
@@ -53,14 +53,14 @@ contract("Game", accounts => {
 
     it("should create new game correctly", async () => {
       await truffleAssert.passes(
-        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.0025", "ether") })
       );
 
       let lastGameId = await game.gameId() - 1;
       let createdGame = await game.gameMapping(lastGameId);
       
       assert.equal(lastGameId, 0, "Game hasn't been created!");
-      assert.equal(web3.utils.fromWei(createdGame.prize), 0.025, "Prize was set incorrectly!");
+      assert.equal(web3.utils.fromWei(createdGame.prize), 0.0025, "Prize was set incorrectly!");
       assert.equal(createdGame.player1.toLowerCase(), player1.toLowerCase(), "Player 1 was set incorrectly!");
       assert.equal(createdGame.player2.toLowerCase(), "0x0000000000000000000000000000000000000000", "Player2 was set incorrectly!");
       assert.equal(createdGame.state, 0, "Game state was set incorrectly!");
@@ -69,7 +69,7 @@ contract("Game", accounts => {
 
     it("should revert if trying to join game created by the same address", async () => {
       await truffleAssert.passes(
-        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.0025", "ether") })
       );
       await truffleAssert.reverts(
         game.joinGame(0, 0, { from: player1, value: 0 })
@@ -78,7 +78,7 @@ contract("Game", accounts => {
 
     it("should revert if trying to join game without needed value", async () => {
       await truffleAssert.passes(
-        game.createGame(1, { from: player1, value: web3.utils.toWei("0.025", "ether") })
+        game.createGame(1, { from: player1, value: web3.utils.toWei("0.0025", "ether") })
       );
       await truffleAssert.reverts(
         game.joinGame(0, 0, { from: player2, value: 0 })
@@ -89,9 +89,9 @@ contract("Game", accounts => {
       // transfer LINK to game contract for VRF fee
       await link.transfer(game.address, web3.utils.toWei("0.5", "ether"), {from:defaultAccount});
 
-      game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") })
+      game.createGame(1, { from: player1, value: web3.utils.toWei("0.0035", "ether") })
 
-      let tx = await game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+      let tx = await game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       let requestId = tx.receipt.rawLogs[3].topics[0];  // get reauestId emitted in the event
 
       // winner should be player2 3%2=1
@@ -108,7 +108,7 @@ contract("Game", accounts => {
       // transfer LINK to game contract for VRF fee
       await link.transfer(game.address, web3.utils.toWei("0.5", "ether"), {from:defaultAccount});
 
-      game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") })
+      game.createGame(1, { from: player1, value: web3.utils.toWei("0.0035", "ether") })
 
       let tx = await game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
       let requestId = tx.receipt.rawLogs[3].topics[0];  // get reauestId emitted in the event
@@ -116,19 +116,21 @@ contract("Game", accounts => {
       await vrfCoordinatoMock.callBackWithRandomness(requestId, "2", game.address, {from: defaultAccount});  // calls fulfillRandomness
 
       await truffleAssert.reverts(
-        game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+        game.joinGame(0, 0, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       );
     });
 
     it("should revert if trying to create or join the game eith NOT_SET option", async () => {
-      await game.createGame(1, { from: player1, value: web3.utils.toWei("0.035", "ether") });
+      await game.createGame(1, { from: player1, value: web3.utils.toWei("0.0035", "ether") });
       await truffleAssert.reverts(
-        game.createGame(3, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+        game.createGame(3, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       );
       await truffleAssert.reverts(
-        game.joinGame(0, 3, { from: player2, value: web3.utils.toWei("0.035", "ether") })
+        game.joinGame(0, 3, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       );
     });
+
+    // add test for delete functipon
   });
 
   describe("#handle change min bet correctly", async () => {
