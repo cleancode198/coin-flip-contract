@@ -56,7 +56,7 @@ async function main() {
   const game = await GameContract.new(BNB_USD_PRICE_FEED, BSC_TESTNET_VRF_COORDINATOR, BSC_TESTNET_LINK_TOKEN, BSC_TESTNET_KEYHASH, {from:accounts[1].address});
   console.log("Game deployed to:", game.address);
   console.log("Creating a new Game . . .");
-  await game.createGame(1, {value: web3.utils.toWei("0.02", "ether"), from:accounts[1].address});
+  //await game.createGame(1, {value: web3.utils.toWei("0.02", "ether"), from:accounts[1].address});
   console.log("Created!");
   //console.log("Joining the Game . . .")
   //await game.joinGame(0, 0, {value: web3.utils.toWei("0.02", "ether"), from:accounts[1].address});

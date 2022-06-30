@@ -1,5 +1,5 @@
 require("@nomiclabs/hardhat-truffle5");
-require("@nomiclabs/hardhat-waffle");
+//require("@nomiclabs/hardhat-waffle");
 //const hre = require("hardhat");
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -35,8 +35,8 @@ module.exports = {
     },
     fuji: {
       url: ``,
-      chainId: 97,
-      accounts: [``],
+      chainId: 43113,
+      accounts: [],
     },*/
   },
   solidity: {

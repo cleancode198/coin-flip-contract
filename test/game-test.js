@@ -10,10 +10,9 @@ const truffleAssert = require("truffle-assertions");
 
 /**
  * GAME_OPTIONS:
- *  ROCK - 0
- *  PAPER - 1
- *  SCRISSORS - 2
- *  NOT_SET - 3
+ *  HEAD - 0
+ *  TAIL - 1
+ *  NOT_SET - 2
  */
 
 contract("Game", accounts => {
@@ -85,7 +84,7 @@ contract("Game", accounts => {
       );
     });
 
-    it("should join and play game correctyl", async () => {
+    it("should create, join and play game correctyl", async () => {
       // transfer LINK to game contract for VRF fee
       await link.transfer(game.address, web3.utils.toWei("0.5", "ether"), {from:defaultAccount});
 
@@ -100,7 +99,7 @@ contract("Game", accounts => {
       let playedGame = await game.gameMapping(0);
 
       assert.equal(playedGame.winner, player2, "Incorrect winner!");
-      assert.equal(playedGame.prize.toNumber(), 0, "Prize wasn't set to 0 after game was played!");
+      assert.equal(playedGame.prize.toNumber(), web3.utils.toWei("0.0035", "ether")*2, "Prize was set to 0!");
       assert.equal(playedGame.state.toNumber(), 1, "Game state wasn't set to CLOSED!");
     });
 
@@ -123,10 +122,10 @@ contract("Game", accounts => {
     it("should revert if trying to create or join the game eith NOT_SET option", async () => {
       await game.createGame(1, { from: player1, value: web3.utils.toWei("0.0035", "ether") });
       await truffleAssert.reverts(
-        game.createGame(3, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
+        game.createGame(2, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       );
       await truffleAssert.reverts(
-        game.joinGame(0, 3, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
+        game.joinGame(0, 2, { from: player2, value: web3.utils.toWei("0.0035", "ether") })
       );
     });
 
@@ -155,7 +154,7 @@ contract("Game", accounts => {
 
       assert(currentMinBet.toNumber() >  prevMinBet.toNumber(), "Current Min Bet is not larger then previus min bet!");
       assert.equal(currentMinBet.toNumber(), 100, "Bet did not change correctly!");
-      assert.equal(prevMinBet.toNumber(), 50, "Previus min bet was not correct!");
+      assert.equal(prevMinBet.toNumber(), 5, "Previus min bet was not correct!");
     });
   });
 });

@@ -18,7 +18,7 @@ contract GameContract is Ownable, VRFConsumerBase {
   uint256 public fee;
   bytes32 public keyHash;
 
-  enum GAME_OPTIONS { ROCK, PAPER, SCRISSORS, NOT_SET }
+  enum GAME_OPTIONS { HEAD, TAIL, NOT_SET }
   GAME_OPTIONS public gameOptions;
 
   enum GAME_STATE { OPEN, CLOSED, GETTING_WINNER, DELETED }
@@ -101,6 +101,7 @@ contract GameContract is Ownable, VRFConsumerBase {
 
   function deleteGame(uint256 _gameId) public {
     require(msg.sender == gameMapping[_gameId].player1, "Not your game!");
+    require(gameMapping[_gameId].state == GAME_STATE.OPEN, "Game must be open!");
     gameMapping[_gameId].state = GAME_STATE.DELETED;
     payable(msg.sender).transfer(gameMapping[_gameId].prize);
   }
@@ -141,22 +142,35 @@ contract GameContract is Ownable, VRFConsumerBase {
     require(randomness > 0, "Random number not found!");
     
     uint256 _gameId = requestIdToGameId[requestId];
-    uint256 _wonId = randomness % 2;
-    //console.log("Randomness %s", randomness);
-    //console.log("Winner Id %s", winnerId);
+    uint256 _wonId = randomness % 5;
     
     address payable winner;
     if(_wonId == 0) {
-      winner = gameMapping[_gameId].player1;
+      // dao
+      winner = payable(address(this));
     }else{
-      winner = gameMapping[_gameId].player2;
+      if(_wonId % 2 == 1) {
+        // head
+        if(gameMapping[_gameId].player1Option == GAME_OPTIONS.HEAD) {
+          winner = gameMapping[_gameId].player1;
+        }else{
+          winner = gameMapping[_gameId].player2;
+        }
+      }else{
+        // tail
+        if(gameMapping[_gameId].player1Option == GAME_OPTIONS.TAIL) {
+          winner = gameMapping[_gameId].player1;
+        }else{
+          winner = gameMapping[_gameId].player2;
+        }
+      }
+      winner.transfer(gameMapping[_gameId].prize); // send winner the game prize
     }
 
 
     gameMapping[_gameId].winner = winner;
     gameMapping[_gameId].state = GAME_STATE.CLOSED;
 
-    winner.transfer(gameMapping[_gameId].prize); // send winner the game prize
     emit GameFinished(winner, gameMapping[_gameId].prize, _gameId);
   }
 
