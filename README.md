@@ -1,15 +1,15 @@
 # Coin Flip
 
-Coin Flip is a **decentralized multiplayer blockchain game**, in which users must bet more than $5 of testnet BNB to be able to play against each other. You can create your own game (you can set a bet as big as you want) and other people will be able to join the game you have created. Users can also join any available games created by other people. After the game is finished winner gets the prize. 
+Coin Flip is a **decentralized multiplayer blockchain game**, in which users must bet more than $5 of testnet BNB to be able to play against each other. You can create your own game (you can set a bet as big as you want) and other people will be able to join the game you have created. Users can also join any available games created by other people. After the game is finished winner gets the prize.
 
 Please leave a ⭐ if you like it.
 
 ![Game Preview](./game-preview.png)
 
 ## Try It Out
-You can try it out yourself in [live demo](https://projects.tijan.dev/coin-flip) on BNB testnet. You can get testnet BNB to be able to test it [here](https://testnet.binance.org/faucet-smart).
+You can get testnet BNB [here](https://testnet.binance.org/faucet-smart).
 
-If you find any **errors** ⛔, please report them to [errors@tijan.dev](mailto:errors@tijan.dev) thanks 🙏.
+If you find any **errors** ⛔, please report them to [cleancode198@gmail.com](mailto:cleancode198@gmail.com) thanks 🙏.
 
 ## Technologies
 Technologies used in this project:
@@ -19,14 +19,14 @@ Technologies used in this project:
 - [Moralis](https://moralis.io/) for authentication
 - [Web3UIKit](https://github.com/web3ui/web3uikit) for UI components
 
-**UI source code is published [here](https://github.com/0xTijan/coin-flip).**
+**UI source code is published [here](https://github.com/cleancode198/coin-flip).**
 
 ## About Me
-Hi! 👋 I'm Tijan, passionate **blockchain developer** from Slovenia. Take a look at my [portfolio](https://tijan.dev).
+Hi! 👋 I'm Jin, passionate **web and blockchain developer**. Take a look at my [portfolio](https://jinkong.netlify.com).
 
-You can get in touch with me through my [website](https://tijan.dev) or contact me on [twitter](https://twitter.com/0xTijan).
+You can get in touch with me through my [website](https://jinkong.netlify.com) or contact me on [linkedin](https://linkedin.com/in/jinkong198).
 
-Do you like my work? You can support me by donating to this address: 0xC4C6A0bc6648a4F343bd86D7C48C9967530fbB48
+Do you like my work? You can support me by donating to this address: 0xf18432a6d3C6f8720227C2856dEE97B6d99357EF
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
